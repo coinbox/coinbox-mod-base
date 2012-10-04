@@ -7,9 +7,24 @@ import sys
 
 import cbpos
 
-class QtUIHandler:
-    window = None
+class QtUIHandler(object):
     application = None
+    __window = None
+    __do_load = True
+    
+    @property
+    def window(self):
+        return self.__window
+    
+    @window.setter
+    def window(self, val):
+        self.__do_load = True
+        self.__window = val
+    
+    @window.deleter
+    def window(self):
+        self.__window = None
+        self.__do_load = False
     
     def init(self):
         logger.info('Platform: %s' % (sys.platform,))
@@ -24,11 +39,14 @@ class QtUIHandler:
             logger.critical('No QApplication set up.')
             return False
         
-        if self.window is None:
+        if not self.__do_load:
+            return False
+        
+        if self.__window is None:
             self.show_default()
         else:
-            logger.debug('Main Window is not the default: ' + repr(self.window))
-            self.window.show()
+            logger.debug('Main Window is not the default: ' + repr(self.__window))
+            self.__window.show()
         return self.application.exec_()
     
     def show_default(self):

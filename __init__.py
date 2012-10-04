@@ -5,7 +5,7 @@ class ModuleLoader(BaseModuleLoader):
     name = 'Base Module'
 
     def ui_handler(self):
-        from .ui import QtUIHandler
+        from cbpos.mod.base.ui import QtUIHandler
         return QtUIHandler()
 
     def menu(self):
@@ -15,5 +15,5 @@ class ModuleLoader(BaseModuleLoader):
                 []]
 
     def config_pages(self):
-        from cbpos.mod.base.pages import MenuConfigPage, AppConfigPage, LocaleConfigPage
+        from cbpos.mod.base.views import MenuConfigPage, AppConfigPage, LocaleConfigPage
         return [AppConfigPage, MenuConfigPage, LocaleConfigPage]
