@@ -2,12 +2,8 @@ from PySide import QtCore, QtGui
 
 import cbpos
 
-class DummyItem:
-    def __init__(self, **kwargs):
-        raise RuntimeError, 'Item class not defined for %s' % (kwargs,)
-
 class FormPage(QtGui.QWidget):
-    itemClass = DummyItem
+    controller = None
     def __init__(self):
         super(FormPage, self).__init__()
 
@@ -33,14 +29,18 @@ class FormPage(QtGui.QWidget):
         self.cancelBtn = buttonBox.addButton("Cancel", QtGui.QDialogButtonBox.RejectRole)
         self.cancelBtn.pressed.connect(self.onCancelButton)
         
-        fields = self.fields()
+        fields = self.controller.fields()
+        widgets = self.widgets()
+        
         rows = []
         self.f = dict()
         self.defaults = dict()
-        for f in fields:
-            self.f[f[0]] = f[2]
-            self.defaults[f[0]] = f[3]
-            rows.append((f[1], f[2]))
+        for field in widgets:
+            f, widget = field
+            label, default = fields.get(f, ["", None]) 
+            self.f[f] = widget
+            self.defaults[f] = default
+            rows.append((label, widget))
         
         self.formContainer = QtGui.QWidget()
         
@@ -71,7 +71,7 @@ class FormPage(QtGui.QWidget):
         self.populate()
     
     def populate(self):
-        model = SimpleList(self.items())
+        model = SimpleList(self.controller.items())
         self.list.setModel(model)
         self.editing = False
         self.setItem(None)
@@ -86,10 +86,10 @@ class FormPage(QtGui.QWidget):
             self.editBtn.setEnabled(False)
         else:
             for f in self.f:
-                self.setDataOnControl(f, self.getDataFromItem(f, item))
-            self.deleteBtn.setEnabled(not self.editing and self.canDeleteItem(item))
-            self.editBtn.setEnabled(not self.editing and self.canEditItem(item))
-        self.newBtn.setEnabled(not self.editing and self.canAddItem())
+                self.setDataOnControl(f, self.controller.getDataFromItem(f, item))
+            self.deleteBtn.setEnabled(not self.editing and self.controller.canDeleteItem(item))
+            self.editBtn.setEnabled(not self.editing and self.controller.canEditItem(item))
+        self.newBtn.setEnabled(not self.editing and self.controller.canAddItem())
         self.okBtn.setEnabled(self.editing)
         self.cancelBtn.setEnabled(self.editing)
         self.list.setEnabled(not self.editing)
@@ -101,10 +101,16 @@ class FormPage(QtGui.QWidget):
     
     def onOkButton(self):
         # TODO: validation
+        data = {}
+        for f in self.f:
+            k, v = self.getDataFromControl(f)
+            if k is None:
+                continue
+            data[k] = v
         if self.item is None:
-            self.new()
+            self.controller.new(data)
         else:
-            self.update(self.item)
+            self.controller.update(self.item, data)
         self.populate()
     
     def onEditButton(self):
@@ -119,7 +125,7 @@ class FormPage(QtGui.QWidget):
     
     def onDeleteButton(self):
         if self.item is not None:
-            self.delete(self.item)
+            self.controller.delete(self.item)
             self.populate()
     
     def onNewButton(self):
@@ -127,51 +133,14 @@ class FormPage(QtGui.QWidget):
         self.setItem(None)
         self.formContainer.setEnabled(True)
     
-    def new(self):
-        data = dict()
-        for f in self.f:
-            key, value = self.getDataFromControl(f)
-            if key is None: continue
-            data[key] = value
-        item = self.itemClass(**data)
-        session = cbpos.database.session()
-        session.add(item)
-        session.commit()
-    
-    def delete(self, item):
-        item.delete()
-    
-    def update(self, item):
-        data = dict()
-        for f in self.f:
-            key, value = self.getDataFromControl(f)
-            if key is None: continue
-            data[key] = value
-        item.update(**data)
-    
-    def fields(self):
-        return []
-    
-    def items(self):
-        return []
-    
-    def canDeleteItem(self, item):
-        return True
-    
-    def canEditItem(self, item):
-        return True
-    
-    def canAddItem(self):
-        return True
+    def widgets(self):
+        return tuple()
     
     def getDataFromControl(self, field):
         return (None, None)
     
     def setDataOnControl(self, field, data):
         pass
-    
-    def getDataFromItem(self, field, item):
-        return None
 
 class SimpleList(QtCore.QAbstractListModel):
     def __init__(self, contents):
