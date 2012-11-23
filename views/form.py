@@ -2,8 +2,11 @@ from PySide import QtCore, QtGui
 
 import cbpos
 
+from cbpos.mod.base.controllers import ValidationError
+
 class FormPage(QtGui.QWidget):
     controller = None
+    
     def __init__(self):
         super(FormPage, self).__init__()
 
@@ -13,6 +16,7 @@ class FormPage(QtGui.QWidget):
         self.list.activated.connect(self.onItemActivated)
         
         buttonBox = QtGui.QDialogButtonBox()
+        
         
         self.deleteBtn = buttonBox.addButton("Delete", QtGui.QDialogButtonBox.DestructiveRole)
         self.deleteBtn.pressed.connect(self.onDeleteButton)
@@ -63,7 +67,11 @@ class FormPage(QtGui.QWidget):
         layout = QtGui.QHBoxLayout()
         layout.setSpacing(10)
         
-        layout.addWidget(self.list)
+        if self.controller.single:
+            self.newBtn.hide()
+            self.deleteBtn.hide()
+        else:
+            layout.addWidget(self.list)
         layout.addLayout(formLayout)
         
         self.setLayout(layout)
@@ -71,11 +79,14 @@ class FormPage(QtGui.QWidget):
         self.populate()
     
     def populate(self):
-        model = SimpleList(self.controller.items())
-        self.list.setModel(model)
         self.editing = False
-        self.setItem(None)
         self.formContainer.setEnabled(False)
+        if self.controller.single:
+            self.setItem(self.controller.item())
+        else:
+            model = SimpleList(self.controller.items())
+            self.list.setModel(model)
+            self.setItem(None)
     
     def setItem(self, item=None):
         self.item = item
@@ -101,16 +112,20 @@ class FormPage(QtGui.QWidget):
     
     def onOkButton(self):
         # TODO: validation
-        data = {}
-        for f in self.f:
-            k, v = self.getDataFromControl(f)
-            if k is None:
-                continue
-            data[k] = v
-        if self.item is None:
-            self.controller.new(data)
-        else:
-            self.controller.update(self.item, data)
+        try:
+            data = {}
+            for f in self.f:
+                k, v = self.getDataFromControl(f)
+                if k is None:
+                    continue
+                data[k] = v
+            if self.item is None:
+                self.controller.new(data)
+            else:
+                self.controller.update(self.item, data)
+        except ValidationError as e:
+            QtGui.QMessageBox.information(self, 'Form', str(e), QtGui.QMessageBox.Ok)
+            return
         self.populate()
     
     def onEditButton(self):

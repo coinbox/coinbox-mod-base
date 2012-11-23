@@ -4,6 +4,7 @@ import cbpos
 
 class FormController(object):
     cls = None
+    single = False
     
     def new(self, data=dict()):
         item = self.cls(**data)
@@ -20,6 +21,9 @@ class FormController(object):
     def fields(self):
         return {}
     
+    def item(self):
+        return None
+    
     def items(self):
         return []
     
@@ -34,3 +38,6 @@ class FormController(object):
     
     def getDataFromItem(self, field, item):
         return None
+
+class ValidationError(ValueError):
+    pass
