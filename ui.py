@@ -51,7 +51,7 @@ class QtUIHandler(object):
     
     def show_default(self):
         logger.debug('Importing main window...')
-        from cbpos.window import MainWindow
+        from .views.window import MainWindow
         
         self.window = MainWindow()
         
