@@ -9,9 +9,9 @@ class ModuleLoader(BaseModuleLoader):
         return QtUIHandler()
 
     def menu(self):
-        return [[{'label': 'Main', 'rel': 0, 'priority':5, 'image': self.res('images/menu-main.png')},
-                 {'label': 'System', 'rel': -1, 'priority':4, 'image': self.res('images/menu-system.png')},
-                 {'label': 'Administration', 'rel': -1, 'priority': 5, 'image': self.res('images/menu-administration.png')}],
+        return [[{'label': 'Main', 'rel': 0, 'priority':5, 'image': cbpos.res.base('images/menu-main.png')},
+                 {'label': 'System', 'rel': -1, 'priority':4, 'image': cbpos.res.base('images/menu-system.png')},
+                 {'label': 'Administration', 'rel': -1, 'priority': 5, 'image': cbpos.res.base('images/menu-administration.png')}],
                 []]
 
     def config_pages(self):
