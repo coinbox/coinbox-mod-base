@@ -20,20 +20,6 @@ class MainWindow(QtGui.QMainWindow):
         
         self.setGeometry(300, 300, 800, 600)
         self.setWindowTitle('Coinbox')
-
-    '''
-    def OnShow(self, event):
-        event.Skip()
-        evt = cbpos.Event('app', cbpos.EVT_START)
-        pos.event_queue.send(evt)
-
-    def OnIdle(self, event):
-        event.Skip()
-        for evt in pos.event_queue.getall():
-            for mod in pos.modules.all():
-                if not mod.handle_event(evt):
-                    break
-    '''
     
     def loadMenu(self):
         """

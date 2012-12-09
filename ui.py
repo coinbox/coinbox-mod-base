@@ -7,7 +7,7 @@ import sys
 
 import cbpos
 
-class QtUIHandler(object):
+class QtUIHandler(cbpos.BaseUIHandler):
     application = None
     __window = None
     __do_load = True
