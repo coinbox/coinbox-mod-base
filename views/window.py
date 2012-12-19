@@ -18,8 +18,50 @@ class MainWindow(QtGui.QMainWindow):
         
         self.statusBar().showMessage(cbpos.tr._('Coinbox POS is ready.'))
         
-        self.setGeometry(300, 300, 800, 600)
+        #self.setGeometry(300, 300, 800, 600)
         self.setWindowTitle('Coinbox')
+
+
+    def loadToolbar(self):
+        """
+        Loads the toolbar actions.
+        """
+
+        exitAction = QtGui.QAction(QtGui.QIcon(cbpos.res.base("images/cancel.png")), 'Exit', self)
+        exitAction.setShortcut('Ctrl+Q')
+        exitAction.triggered.connect(self.close)
+
+        mwState = cbpos.config['mainwindow', 'state']
+        mwGeom  = cbpos.config['mainwindow', 'geometry']
+
+        self.toolbar = self.addToolBar('Base') #here we add the toolbar for base module.
+        self.toolbar.setObjectName('BaseModuleToolbar')
+        self.toolbar.addAction(exitAction)
+
+        #Restores the saved mainwindow's toolbars and docks, and then the window geometry.
+        if mwState is not None:
+            self.restoreState( QtCore.QByteArray(mwState) )
+        if mwGeom is not None:
+            self.restoreGeometry( QtCore.QByteArray(mwGeom) )
+        else:
+            self.setGeometry(0, 0, 800, 600)
+
+
+    def saveWindowState(self):
+        """
+        Saves the main window state (position, size, toolbar positions)
+        """
+        mwState = self.saveState()
+        mwGeom  = self.saveGeometry()
+        cbpos.config['mainwindow', 'state'] = mwState.data() #constData does not exists on pyside.
+        cbpos.config['mainwindow', 'geometry'] = mwGeom.data()
+        cbpos.config.save()
+
+
+    def closeEvent(self, event):
+        self.saveWindowState()
+        #do any other thing before closing...
+        event.accept()
     
     def loadMenu(self):
         """
