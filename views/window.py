@@ -24,19 +24,27 @@ class MainWindow(QtGui.QMainWindow):
 
     def loadToolbar(self):
         """
-        Loads the toolbar actions.
+        Loads the toolbar actions, restore toolbar state, and restore window geometry.
         """
+        from cbpos import _actions #The actions list that holds all the actions for the toolbar.
 
-        exitAction = QtGui.QAction(QtGui.QIcon(cbpos.res.base("images/cancel.png")), 'Exit', self)
-        exitAction.setShortcut('Ctrl+Q')
-        exitAction.triggered.connect(self.close)
+        action = QtGui.QAction(QtGui.QIcon(cbpos.res.base("images/cancel.png")), 'Exit', self)
+        action.setShortcut('Ctrl+Q')
+        action.triggered.connect(self.close)
 
         mwState = cbpos.config['mainwindow', 'state']
         mwGeom  = cbpos.config['mainwindow', 'geometry']
 
-        self.toolbar = self.addToolBar('Base') #here we add the toolbar for base module.
-        self.toolbar.setObjectName('BaseModuleToolbar')
-        self.toolbar.addAction(exitAction)
+        self.toolbar = self.addToolBar('Base')
+        self.toolbar.setObjectName('BaseToolbar')
+        self.toolbar.addAction(action)
+
+        for act in _actions:
+            action = QtGui.QAction(QtGui.QIcon(act['icon']), act['label'], self)
+            action.setShortcut(act['shortcut'])
+            action.triggered.connect(act['callback'])
+            self.toolbar.addAction(action)
+
 
         #Restores the saved mainwindow's toolbars and docks, and then the window geometry.
         if mwState is not None:
