@@ -4,6 +4,9 @@ logger = logging.getLogger(__name__)
 from PySide import QtCore, QtGui
 
 import cbpos
+from cbpos.mod.auth.views.dialogs.clockingpanel import ClockingPanel
+
+from pydispatch import dispatcher
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self):
@@ -21,7 +24,40 @@ class MainWindow(QtGui.QMainWindow):
         #self.setGeometry(300, 300, 800, 600)
         self.setWindowTitle('Coinbox')
 
+        #adds the clock-in/clock-out slide panel.
+        self.clockingPanel = ClockingPanel(self, cbpos.res.auth("images/clocking.svg"))
+        self.clockingPanel.setSize(300, 260)
+        self.clockingPanel.btnLogin.clicked.connect(self.onDoClocking)
+        self.clockingPanel.btnExit.clicked.connect(self.do_hidePanel)
+        self.clockingPanel.editUsername.currentIndexChanged.connect(self.clockingPanel.editPassword.setFocus)
+        self.clockingPanel.editPassword.returnPressed.connect(self.onDoClocking)
+        dispatcher.connect(self.do_show_clocking, signal='do-show-clockin-panel', sender=dispatcher.Any)
+        dispatcher.connect(self.do_show_clocking, signal='do-show-clockout-panel', sender=dispatcher.Any)
+        dispatcher.connect(self.onAuthError, signal='do-show-error-on-clock-in', sender=dispatcher.Any)
+        dispatcher.connect(self.onClockingDone, signal='do-hide-clockin-panel', sender=dispatcher.Any)
 
+    def do_show_clocking(self, sender, isIn):
+        self.clockingPanel.setIsIn(isIn)
+        self.clockingPanel.showPanel()
+
+    def do_hidePanel(self):
+        self.clockingPanel.clean()
+        self.clockingPanel.hidePanel()
+
+    def onDoClocking(self):
+        username = self.clockingPanel.getUserName()
+        password = self.clockingPanel.getPassword()
+        dispatcher.send(signal='do-clocking', sender='base-mod', usern=username, passw=password, isIn=self.clockingPanel.isIn() )
+        self.clockingPanel.clean()
+
+    def onAuthError(self, sender, msg):
+        self.clockingPanel.setError(msg)
+
+    def onClockingDone(self, sender, msg):
+        self.clockingPanel.setError(msg)
+        #Wait 3 seconds to close the panel.
+        QtCore.QTimer.singleShot(3000, self.clockingPanel.hidePanel)
+        
     def loadToolbar(self):
         """
         Loads the toolbar actions, restore toolbar state, and restore window geometry.
@@ -36,11 +72,12 @@ class MainWindow(QtGui.QMainWindow):
         mwGeom  = cbpos.config['mainwindow', 'geometry']
 
         self.toolbar = self.addToolBar('Base')
+        self.toolbar.setIconSize(QtCore.QSize(48,48)) #Suitable for touchscreens
         self.toolbar.setObjectName('BaseToolbar')
         self.toolbar.addAction(action)
 
         for act in _actions:
-            action = QtGui.QAction(QtGui.QIcon(act['icon']), act['label'], self)
+            action = QtGui.QAction(QtGui.QIcon(act['icon']), act['label'], self) #Remember to load an icon with a proper size (eg 48x48 px for touchscreens)
             action.setShortcut(act['shortcut'])
             action.triggered.connect(act['callback'])
             self.toolbar.addAction(action)
@@ -48,9 +85,9 @@ class MainWindow(QtGui.QMainWindow):
 
         #Restores the saved mainwindow's toolbars and docks, and then the window geometry.
         if mwState is not None:
-            self.restoreState( QtCore.QByteArray(mwState) )
+            self.restoreState( QtCore.QByteArray.fromBase64(mwState) )
         if mwGeom is not None:
-            self.restoreGeometry( QtCore.QByteArray(mwGeom) )
+            self.restoreGeometry( QtCore.QByteArray.fromBase64(mwGeom) )
         else:
             self.setGeometry(0, 0, 800, 600)
 
@@ -59,10 +96,10 @@ class MainWindow(QtGui.QMainWindow):
         """
         Saves the main window state (position, size, toolbar positions)
         """
-        mwState = self.saveState()
-        mwGeom  = self.saveGeometry()
-        cbpos.config['mainwindow', 'state'] = mwState.data() #constData does not exists on pyside.
-        cbpos.config['mainwindow', 'geometry'] = mwGeom.data()
+        mwState = self.saveState().toBase64() 
+        mwGeom  = self.saveGeometry().toBase64() 
+        cbpos.config['mainwindow', 'state'] = '%s'%mwState #why i need to do this? it is supposed that toBase64() returns a string.
+        cbpos.config['mainwindow', 'geometry'] = '%s'%mwGeom
         cbpos.config.save()
 
 
