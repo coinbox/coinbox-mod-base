@@ -48,15 +48,14 @@ class MainWindow(QtGui.QMainWindow):
         username = self.clockingPanel.getUserName()
         password = self.clockingPanel.getPassword()
         dispatcher.send(signal='do-clocking', sender='base-mod', usern=username, passw=password, isIn=self.clockingPanel.isIn() )
-        self.clockingPanel.clean()
 
     def onAuthError(self, sender, msg):
         self.clockingPanel.setError(msg)
 
     def onClockingDone(self, sender, msg):
-        self.clockingPanel.setError(msg)
-        #Wait 3 seconds to close the panel.
-        QtCore.QTimer.singleShot(3000, self.clockingPanel.hidePanel)
+        self.clockingPanel.setMessage(msg)
+        #Wait 1 seconds to close the panel.
+        QtCore.QTimer.singleShot(1000, self.clockingPanel.hidePanel)
         
     def loadToolbar(self):
         """
