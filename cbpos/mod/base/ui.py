@@ -51,7 +51,7 @@ class QtUIHandler(cbpos.BaseUIHandler):
     
     def show_default(self):
         logger.debug('Importing main window...')
-        from .views.window import MainWindow
+        from .views import MainWindow
         
         self.window = MainWindow()
         
@@ -64,3 +64,22 @@ class QtUIHandler(cbpos.BaseUIHandler):
             self.window.showFullScreen()
         else:
             self.window.show()
+    
+    def extend_default(self, extension):
+        import cbpos.mod.base.views as baseviews
+        
+        try:
+            init = extension.init
+            delattr(extension, "init")
+        except AttributeError:
+            init = None
+        
+        class ExtendedMainWindow(extension, baseviews.MainWindow):
+            pass
+        
+        baseviews.MainWindow = ExtendedMainWindow
+        if init:
+            baseviews.MainWindow.addInit(init)
+
+class MainWindowExtension(object):
+    pass

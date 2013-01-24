@@ -4,11 +4,12 @@ logger = logging.getLogger(__name__)
 from PySide import QtCore, QtGui
 
 import cbpos
-from cbpos.mod.auth.views.dialogs.clockingpanel import ClockingPanel
 
 from pydispatch import dispatcher
 
 class MainWindow(QtGui.QMainWindow):
+    __inits = []
+    
     def __init__(self):
         super(MainWindow, self).__init__()
         
@@ -21,51 +22,23 @@ class MainWindow(QtGui.QMainWindow):
         
         self.statusBar().showMessage(cbpos.tr._('Coinbox POS is ready.'))
         
-        #self.setGeometry(300, 300, 800, 600)
         self.setWindowTitle('Coinbox')
-
-        #adds the clock-in/clock-out slide panel.
-        self.clockingPanel = ClockingPanel(self, cbpos.res.auth("images/clocking.svg"))
-        self.clockingPanel.setSize(300, 260)
-        self.clockingPanel.btnLogin.clicked.connect(self.onDoClocking)
-        self.clockingPanel.btnExit.clicked.connect(self.do_hidePanel)
-        self.clockingPanel.editUsername.currentIndexChanged.connect(self.clockingPanel.editPassword.setFocus)
-        self.clockingPanel.editPassword.returnPressed.connect(self.onDoClocking)
-        dispatcher.connect(self.do_show_clocking, signal='do-show-clockin-panel', sender=dispatcher.Any)
-        dispatcher.connect(self.do_show_clocking, signal='do-show-clockout-panel', sender=dispatcher.Any)
-        dispatcher.connect(self.onAuthError, signal='do-show-error-on-clock-in', sender=dispatcher.Any)
-        dispatcher.connect(self.onClockingDone, signal='do-hide-clockin-panel', sender=dispatcher.Any)
-
-    def do_show_clocking(self, sender, isIn):
-        self.clockingPanel.setIsIn(isIn)
-        self.clockingPanel.showPanel()
-
-    def do_hidePanel(self):
-        self.clockingPanel.clean()
-        self.clockingPanel.hidePanel()
-
-    def onDoClocking(self):
-        username = self.clockingPanel.getUserName()
-        password = self.clockingPanel.getPassword()
-        dispatcher.send(signal='do-clocking', sender='base-mod', usern=username, passw=password, isIn=self.clockingPanel.isIn() )
-
-    def onAuthError(self, sender, msg):
-        self.clockingPanel.setError(msg)
-
-    def onClockingDone(self, sender, msg):
-        self.clockingPanel.setMessage(msg)
-        #Wait 1 seconds to close the panel.
-        QtCore.QTimer.singleShot(1000, self.clockingPanel.hidePanel)
         
+        self.callInit()
+    
+    @staticmethod
+    def addInit(init):
+        MainWindow.__inits.append(init)
+    
+    def callInit(self):
+        logger.debug('There are (%d) extensions to the MainWindow' % (len(self.__inits),))
+        for init in self.__inits:
+            init(self)
+    
     def loadToolbar(self):
         """
         Loads the toolbar actions, restore toolbar state, and restore window geometry.
         """
-        from cbpos import _actions #The actions list that holds all the actions for the toolbar.
-
-        action = QtGui.QAction(QtGui.QIcon(cbpos.res.base("images/cancel.png")), 'Exit', self)
-        action.setShortcut('Ctrl+Q')
-        action.triggered.connect(self.close)
 
         mwState = cbpos.config['mainwindow', 'state']
         mwGeom  = cbpos.config['mainwindow', 'geometry']
@@ -73,12 +46,11 @@ class MainWindow(QtGui.QMainWindow):
         self.toolbar = self.addToolBar('Base')
         self.toolbar.setIconSize(QtCore.QSize(48,48)) #Suitable for touchscreens
         self.toolbar.setObjectName('BaseToolbar')
-        self.toolbar.addAction(action)
 
-        for act in _actions:
-            action = QtGui.QAction(QtGui.QIcon(act['icon']), act['label'], self) #Remember to load an icon with a proper size (eg 48x48 px for touchscreens)
-            action.setShortcut(act['shortcut'])
-            action.triggered.connect(act['callback'])
+        for act in cbpos.menu.actions:
+            action = QtGui.QAction(QtGui.QIcon(act.icon), act.label, self) # TODO: Remember to load an icon with a proper size (eg 48x48 px for touchscreens)
+            action.setShortcut(act.shortcut)
+            action.triggered.connect(act.trigger)
             self.toolbar.addAction(action)
 
 
@@ -109,12 +81,12 @@ class MainWindow(QtGui.QMainWindow):
     
     def loadMenu(self):
         """
-        Load the menu "root" items and "items" into the toolbook with the appropriate pages. 
+        Load the menu root items and items into the tab widget with the appropriate pages. 
         """
         show_empty_root_items = cbpos.config['menu', 'show_empty_root_items']
         show_disabled_items = cbpos.config['menu', 'show_disabled_items']
         
-        for root in cbpos.menu.main.items:
+        for root in cbpos.menu.items:
             if not root.enabled and not show_disabled_items:
                 continue
             enabled_children = [i for i in root.children if i.enabled]
@@ -122,17 +94,20 @@ class MainWindow(QtGui.QMainWindow):
                 children = root.children
             else:
                 children = enabled_children
+            
             # Hide empty menu root items
             if len(children) == 0 and not show_empty_root_items:
                 continue
+            
             widget = self.getTabWidget(children)
-            icon = QtGui.QIcon(root.image)
+            icon = QtGui.QIcon(root.icon)
             self.tabs.addTab(widget, icon, root.label)
-            widget.setEnabled(root.enabled)# and len(enabled_children) != 0)
+            widget.setEnabled(root.enabled)
 
     def getTabWidget(self, items):
         """
-        Returns the appropriate window to be placed in the main Toolbook depending on the items of a root menu item.
+        Returns the appropriate widget to be placed in the main tabWidget,
+        depending on the number of children of a root menu item.
         """
         count = len(items)
         if count == 0:
@@ -140,6 +115,7 @@ class MainWindow(QtGui.QMainWindow):
             widget.setEnabled(False)
             return widget
         elif count == 1:
+            logger.debug('Loading menu page for %s' % (items[0].name,))
             widget = items[0].page()
             widget.setEnabled(items[0].enabled)
             return widget
@@ -147,9 +123,10 @@ class MainWindow(QtGui.QMainWindow):
             tabs = QtGui.QTabWidget()
 
             for item in items:
-                logger.debug('Loading menu for %s' % (item.label,))
+                logger.debug('Loading menu page for %s' % (item.name,))
+                
                 widget = item.page()
-                icon = QtGui.QIcon(item.image)
+                icon = QtGui.QIcon(item.icon)
                 tabs.addTab(widget, icon, item.label)
                 widget.setEnabled(item.enabled)
             return tabs
