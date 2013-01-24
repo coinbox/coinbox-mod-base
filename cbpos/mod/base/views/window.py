@@ -89,9 +89,9 @@ class MainWindow(QtGui.QMainWindow):
         for root in cbpos.menu.items:
             if not root.enabled and not show_disabled_items:
                 continue
-            enabled_children = [i for i in root.children if i.enabled]
+            
             if show_disabled_items:
-                children = root.children
+                children = [i for i in root.children if i.enabled]
             else:
                 children = enabled_children
             
