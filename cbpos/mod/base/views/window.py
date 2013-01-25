@@ -91,9 +91,9 @@ class MainWindow(QtGui.QMainWindow):
                 continue
             
             if show_disabled_items:
-                children = [i for i in root.children if i.enabled]
+                children = root.children
             else:
-                children = enabled_children
+                children = [i for i in root.children if i.enabled]
             
             # Hide empty menu root items
             if len(children) == 0 and not show_empty_root_items:
