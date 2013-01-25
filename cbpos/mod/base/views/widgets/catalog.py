@@ -1,5 +1,7 @@
 from PySide import QtGui, QtCore
 
+import cbpos
+
 PARENT, CHILD, UP, ALL = 0, 1, 2, 3
 ITEM, TYPE = QtCore.Qt.UserRole+1, QtCore.Qt.UserRole+2
 
@@ -12,14 +14,25 @@ class Catalog(QtGui.QWidget):
     def __init__(self):
         super(Catalog, self).__init__()
         self.search = QtGui.QLineEdit()
+        self.search.setPlaceholderText(cbpos.tr.base._('Search'))
+        
         self.search.textChanged.connect(self.onSearchTextChanged)
+        self.search.returnPressed.connect(self.onSearchReturnPressed)
+        
+        self.clearBtn = QtGui.QPushButton()
+        self.clearBtn.setIcon(QtGui.QIcon.fromTheme('edit-clear'))
+        self.clearBtn.pressed.connect(self.onSearchClear)
         
         self.list = QtGui.QListWidget()
         self.list.setViewMode(QtGui.QListWidget.IconMode)
         self.list.itemActivated.connect(self.onListItemActivated)
         
+        top = QtGui.QHBoxLayout()
+        top.addWidget(self.search)
+        top.addWidget(self.clearBtn)
+        
         layout = QtGui.QVBoxLayout()
-        layout.addWidget(self.search)
+        layout.addLayout(top)
         layout.addWidget(self.list)
         self.setLayout(layout)
         
@@ -33,6 +46,7 @@ class Catalog(QtGui.QWidget):
         
         self.__current = None
         self.__tree = []
+        self.__display = [[], []]
         self.populate()
 
     def populate(self, parent=None, search=None, show_all=False):
@@ -40,23 +54,26 @@ class Catalog(QtGui.QWidget):
         self.__search = search
         self.in_all = show_all
         
-        if self.in_all:
-            parents, children = [], self.getAll(search)
+        if self.in_all or (parent is None and search is not None):
+            parents, children = [], self.getAll(search=search)
         else:
-            parents, children = self.getChildren(parent, search)
+            parents, children = self.getChildren(parent=parent, search=search)
         
         self.list.clear()
         
-        if parent is not None or self.in_all:
-            self.addItem("[Up]", None, UP)
-        elif self.show_all:
-            self.addItem("[All]", None, ALL)
+        if search is None:
+            if parent is not None or self.in_all:
+                self.addItem("[Up]", None, UP)
+            elif self.show_all:
+                self.addItem("[All]", None, ALL)
         
         for data, label in parents:
             self.addItem(label, data, PARENT)
         
         for data, label in children:
             self.addItem(label, data, CHILD)
+        
+        self.__display = [parents, children]
 
     def addItem(self, label, data, t):
         item = QtGui.QListWidgetItem(label)
@@ -66,7 +83,32 @@ class Catalog(QtGui.QWidget):
         return self.list.addItem(item)
 
     def onSearchTextChanged(self):
-        self.populate(parent=self.__current, search=self.search.text())
+        QtCore.QTimer.singleShot(200, lambda s=self.search.text(): self.checkSearch(s))
+    
+    def checkSearch(self, last):
+        if last == self.search.text():
+            self.doSearch()
+    
+    def onSearchReturnPressed(self):
+        self.doSearch()
+        
+        parents, children = self.__display
+        if len(parents) == 0 and len(children) == 1:
+            data, label = children[0]
+            self.childSelected.emit(data)
+        elif len(parents) == 1 and len(children) == 0:
+            data, label = parents[0]
+            self.parentSelected.emit(data)
+    
+    def onSearchClear(self):
+        self.search.setText('')
+        self.doSearch()
+    
+    def doSearch(self):
+        s = self.search.text()
+        if s == '':
+            s = None
+        self.populate(parent=self.__current, search=s)
         self.searchChanged.emit(self.__search)
 
     def onListItemActivated(self):
