@@ -17,6 +17,7 @@ class MainWindow(QtGui.QMainWindow):
         self.tabs.setTabsClosable(False)
         self.tabs.setIconSize(QtCore.QSize(32, 32))
         self.tabs.setDocumentMode(True)
+        self.tabs.tabBar().hide()
         
         self.setCentralWidget(self.tabs)
         
@@ -86,6 +87,8 @@ class MainWindow(QtGui.QMainWindow):
         show_empty_root_items = cbpos.config['menu', 'show_empty_root_items']
         show_disabled_items = cbpos.config['menu', 'show_disabled_items']
         
+        self.toolbar.addSeparator()
+        
         for root in cbpos.menu.items:
             if not root.enabled and not show_disabled_items:
                 continue
@@ -101,8 +104,17 @@ class MainWindow(QtGui.QMainWindow):
             
             widget = self.getTabWidget(children)
             icon = QtGui.QIcon(root.icon)
-            self.tabs.addTab(widget, icon, root.label)
+            i = self.tabs.addTab(widget, icon, root.label)
             widget.setEnabled(root.enabled)
+            
+            action = QtGui.QAction(QtGui.QIcon(icon), root.label, self) # TODO: Remember to load an icon with a proper size (eg 48x48 px for touchscreens)
+            action.onTrigger = lambda n=i: self.onTrigger(n)
+            action.triggered.connect(action.onTrigger)
+            self.toolbar.addAction(action)
+
+    def onTrigger(self, i):
+        print i
+        self.tabs.setCurrentIndex(i)
 
     def getTabWidget(self, items):
         """
