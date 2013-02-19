@@ -33,12 +33,14 @@ class MenuConfigPage(QtGui.QWidget):
         
         self.show_disabled = QtGui.QCheckBox('Show')
         self.show_empty_root = QtGui.QCheckBox('Show')
+        self.show_tab_bar = QtGui.QCheckBox('Show')
         
         form = QtGui.QFormLayout()
         form.setSpacing(10)
         
         form.addRow('Show Disabled Items', self.show_disabled)
         form.addRow('Show Empty Root Items', self.show_empty_root)
+        form.addRow('Show Tab Bar', self.show_tab_bar)
         
         self.setLayout(form)
 
@@ -48,6 +50,9 @@ class MenuConfigPage(QtGui.QWidget):
         
         show_disabled_items = (cbpos.config['menu', 'show_disabled_items'] != '')
         self.show_disabled.setChecked(show_disabled_items)
+        
+        show_tab_bar = (cbpos.config['menu', 'show_tab_bar'] != '')
+        self.show_tab_bar.setChecked(show_tab_bar)
     
     def update(self):
         show_empty_root_items = self.show_empty_root.isChecked()
@@ -55,6 +60,9 @@ class MenuConfigPage(QtGui.QWidget):
         
         show_disabled_items = self.show_disabled.isChecked()
         cbpos.config['menu', 'show_disabled_items'] = '1' if show_disabled_items else ''
+        
+        show_tab_bar = self.show_tab_bar.isChecked()
+        cbpos.config['menu', 'show_tab_bar'] = '1' if show_tab_bar else ''
 
 class LocaleConfigPage(QtGui.QWidget):
     label = 'Locale'

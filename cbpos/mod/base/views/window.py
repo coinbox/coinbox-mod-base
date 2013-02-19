@@ -16,8 +16,10 @@ class MainWindow(QtGui.QMainWindow):
         self.tabs = QtGui.QTabWidget(self)
         self.tabs.setTabsClosable(False)
         self.tabs.setIconSize(QtCore.QSize(32, 32))
-        self.tabs.setDocumentMode(True)
-        self.tabs.tabBar().hide()
+        
+        self.toolbar = self.addToolBar('Base')
+        self.toolbar.setIconSize(QtCore.QSize(48,48)) #Suitable for touchscreens
+        self.toolbar.setObjectName('BaseToolbar')
         
         self.setCentralWidget(self.tabs)
         
@@ -26,15 +28,9 @@ class MainWindow(QtGui.QMainWindow):
         self.setWindowTitle('Coinbox')
         
         self.callInit()
-    
-    @staticmethod
-    def addInit(init):
-        MainWindow.__inits.append(init)
-    
-    def callInit(self):
-        logger.debug('There are (%d) extensions to the MainWindow' % (len(self.__inits),))
-        for init in self.__inits:
-            init(self)
+        
+        self.loadToolbar()
+        self.loadMenu()
     
     def loadToolbar(self):
         """
@@ -44,12 +40,9 @@ class MainWindow(QtGui.QMainWindow):
         mwState = cbpos.config['mainwindow', 'state']
         mwGeom  = cbpos.config['mainwindow', 'geometry']
 
-        self.toolbar = self.addToolBar('Base')
-        self.toolbar.setIconSize(QtCore.QSize(48,48)) #Suitable for touchscreens
-        self.toolbar.setObjectName('BaseToolbar')
-
         for act in cbpos.menu.actions:
-            action = QtGui.QAction(QtGui.QIcon(act.icon), act.label, self) # TODO: Remember to load an icon with a proper size (eg 48x48 px for touchscreens)
+            # TODO: Remember to load an icon with a proper size (eg 48x48 px for touchscreens)
+            action = QtGui.QAction(QtGui.QIcon(act.icon), act.label, self)
             action.setShortcut(act.shortcut)
             action.triggered.connect(act.trigger)
             self.toolbar.addAction(action)
@@ -62,8 +55,80 @@ class MainWindow(QtGui.QMainWindow):
             self.restoreGeometry( QtCore.QByteArray.fromBase64(mwGeom) )
         else:
             self.setGeometry(0, 0, 800, 600)
+    
+    def loadMenu(self):
+        """
+        Load the menu root items and items into the QTabWidget with the appropriate pages. 
+        """
+        show_empty_root_items = cbpos.config['menu', 'show_empty_root_items']
+        show_disabled_items = cbpos.config['menu', 'show_disabled_items']
+        hide_tab_bar = not cbpos.config['menu', 'show_tab_bar']
+        
+        if hide_tab_bar:
+            # Hide the tab bar and prepare the toolbar for extra QAction's
+            self.tabs.tabBar().hide()
+            # This pre-supposes that the menu items will come after the actions
+            self.toolbar.addSeparator()
+        
+        for root in cbpos.menu.items:
+            if not root.enabled and not show_disabled_items:
+                continue
+            
+            if show_disabled_items:
+                # Show all child items
+                children = root.children
+            else:
+                # Filter out those which are disabled
+                children = [i for i in root.children if i.enabled]
+            
+            # Hide empty menu root items
+            if len(children) == 0 and not show_empty_root_items:
+                continue
+            
+            # Add the tab
+            widget = self.getTabWidget(children)
+            icon = QtGui.QIcon(root.icon)
+            index = self.tabs.addTab(widget, icon, root.label)
+            widget.setEnabled(root.enabled)
+            
+            # Add the toolbar action if enabled
+            if hide_tab_bar:
+                # TODO: Remember to load an icon with a proper size (eg 48x48 px for touchscreens)
+                action = QtGui.QAction(QtGui.QIcon(icon), root.label, self)
+                action.onTrigger = lambda n=index: self.tabs.setCurrentIndex(n)
+                action.triggered.connect(action.onTrigger)
+                self.toolbar.addAction(action)
 
+    def getTabWidget(self, items):
+        """
+        Returns the appropriate window to be placed in the main QTabWidget,
+        depending on the number of children of a root menu item.
+        """
+        count = len(items)
+        if count == 0:
+            # If there are no child items, just return an empty widget
+            widget = QtGui.QWidget()
+            widget.setEnabled(False)
+            return widget
+        elif count == 1:
+            # If there is only one item, show it as is.
+            logger.debug('Loading menu page for %s' % (items[0].name,))
+            widget = items[0].page()
+            widget.setEnabled(items[0].enabled)
+            return widget
+        else:
+            # If there are many children, add them in a QTabWidget
+            tabs = QtGui.QTabWidget()
 
+            for item in items:
+                logger.debug('Loading menu page for %s' % (item.name,))
+                
+                widget = item.page()
+                icon = QtGui.QIcon(item.icon)
+                tabs.addTab(widget, icon, item.label)
+                widget.setEnabled(item.enabled)
+            return tabs
+    
     def saveWindowState(self):
         """
         Saves the main window state (position, size, toolbar positions)
@@ -76,69 +141,24 @@ class MainWindow(QtGui.QMainWindow):
 
 
     def closeEvent(self, event):
+        """
+        Perform necessary operations before closing the window.
+        """
         self.saveWindowState()
         #do any other thing before closing...
         event.accept()
     
-    def loadMenu(self):
+    @staticmethod
+    def addInit(init):
         """
-        Load the menu root items and items into the tab widget with the appropriate pages. 
+        Adds the `init` method to the list of extensions of the `MainWindow.__init__`.
         """
-        show_empty_root_items = cbpos.config['menu', 'show_empty_root_items']
-        show_disabled_items = cbpos.config['menu', 'show_disabled_items']
-        
-        self.toolbar.addSeparator()
-        
-        for root in cbpos.menu.items:
-            if not root.enabled and not show_disabled_items:
-                continue
-            
-            if show_disabled_items:
-                children = root.children
-            else:
-                children = [i for i in root.children if i.enabled]
-            
-            # Hide empty menu root items
-            if len(children) == 0 and not show_empty_root_items:
-                continue
-            
-            widget = self.getTabWidget(children)
-            icon = QtGui.QIcon(root.icon)
-            i = self.tabs.addTab(widget, icon, root.label)
-            widget.setEnabled(root.enabled)
-            
-            action = QtGui.QAction(QtGui.QIcon(icon), root.label, self) # TODO: Remember to load an icon with a proper size (eg 48x48 px for touchscreens)
-            action.onTrigger = lambda n=i: self.onTrigger(n)
-            action.triggered.connect(action.onTrigger)
-            self.toolbar.addAction(action)
-
-    def onTrigger(self, i):
-        print i
-        self.tabs.setCurrentIndex(i)
-
-    def getTabWidget(self, items):
+        MainWindow.__inits.append(init)
+    
+    def callInit(self):
         """
-        Returns the appropriate widget to be placed in the main tabWidget,
-        depending on the number of children of a root menu item.
+        Handle calls to `__init__` methods of extensions of the MainWindow.
         """
-        count = len(items)
-        if count == 0:
-            widget = QtGui.QWidget()
-            widget.setEnabled(False)
-            return widget
-        elif count == 1:
-            logger.debug('Loading menu page for %s' % (items[0].name,))
-            widget = items[0].page()
-            widget.setEnabled(items[0].enabled)
-            return widget
-        else:
-            tabs = QtGui.QTabWidget()
-
-            for item in items:
-                logger.debug('Loading menu page for %s' % (item.name,))
-                
-                widget = item.page()
-                icon = QtGui.QIcon(item.icon)
-                tabs.addTab(widget, icon, item.label)
-                widget.setEnabled(item.enabled)
-            return tabs
+        logger.debug('There are (%d) extensions to the MainWindow' % (len(self.__inits),))
+        for init in self.__inits:
+            init(self)

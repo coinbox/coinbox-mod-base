@@ -53,17 +53,14 @@ class QtUIHandler(cbpos.BaseUIHandler):
         logger.debug('Importing main window...')
         from .views import MainWindow
         
+        logger.debug('Loading main window...')
         self.window = MainWindow()
-        
-        logger.debug('Loading menu...')
-        self.window.loadToolbar()
-        self.window.loadMenu()
         
         fullscreen = (cbpos.config['app', 'fullscreen'] != '')
         if fullscreen:
             self.window.showFullScreen()
         else:
-            self.window.show()
+            self.window.showNormal()
     
     def extend_default(self, extension):
         import cbpos.mod.base.views as baseviews

@@ -5,6 +5,7 @@ from cbpos.modules import BaseModuleLoader
 
 class ModuleLoader(BaseModuleLoader):
     name = 'Base Module'
+    config = [['mod.menu', {'show_tab_bar': ''}]]
 
     def init(self):
         dispatcher.connect(cbpos.terminate, signal='exit', sender=dispatcher.Any)
