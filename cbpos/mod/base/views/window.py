@@ -21,6 +21,23 @@ class MainWindow(QtGui.QMainWindow):
         self.toolbar.setIconSize(QtCore.QSize(48,48)) #Suitable for touchscreens
         self.toolbar.setObjectName('BaseToolbar')
         
+        toolbarStyle = cbpos.config['menu', 'toolbar_style']
+        # The index in this list is the same as that in the configuration page
+        available_styles = (
+              QtCore.Qt.ToolButtonFollowStyle,
+              QtCore.Qt.ToolButtonIconOnly,
+              QtCore.Qt.ToolButtonTextOnly,
+              QtCore.Qt.ToolButtonTextBesideIcon,
+              QtCore.Qt.ToolButtonTextUnderIcon,
+              )
+        try:
+            if toolbarStyle is None:
+                raise ValueError
+            toolbarStyle = available_styles[int(toolbarStyle)]
+        except ValueError, IndexError:
+            toolbarStyle = QtCore.Qt.ToolButtonFollowStyle
+        self.toolbar.setToolButtonStyle(toolbarStyle)
+        
         self.setCentralWidget(self.tabs)
         
         self.statusBar().showMessage(cbpos.tr._('Coinbox POS is ready.'))
