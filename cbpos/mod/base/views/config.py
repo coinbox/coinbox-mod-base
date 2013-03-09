@@ -72,7 +72,13 @@ class MenuConfigPage(QtGui.QWidget):
         self.show_tab_bar.setChecked(show_tab_bar)
         
         toolbar_style = cbpos.config['menu', 'toolbar_style']
-        style_index = self.toolbar_style.findData(int(toolbar_style))
+        try:
+            toolbar_style = int(toolbar_style)
+        except (ValueError, TypeError):
+            style_index = -1
+        else:
+            style_index = self.toolbar_style.findData(toolbar_style)
+        
         if style_index < 0:
             style_index = 0
         self.toolbar_style.setCurrentIndex(style_index)

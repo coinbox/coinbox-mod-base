@@ -31,10 +31,8 @@ class MainWindow(QtGui.QMainWindow):
               QtCore.Qt.ToolButtonTextUnderIcon,
               )
         try:
-            if toolbarStyle is None:
-                raise ValueError
             toolbarStyle = available_styles[int(toolbarStyle)]
-        except ValueError, IndexError:
+        except (ValueError, TypeError, IndexError):
             toolbarStyle = QtCore.Qt.ToolButtonFollowStyle
         self.toolbar.setToolButtonStyle(toolbarStyle)
         
