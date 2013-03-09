@@ -26,6 +26,7 @@ class Catalog(QtGui.QWidget):
         self.list = QtGui.QListWidget()
         self.list.setViewMode(QtGui.QListWidget.IconMode)
         self.list.itemActivated.connect(self.onListItemActivated)
+        self.list.setIconSize(QtCore.QSize(128, 128))
         
         top = QtGui.QHBoxLayout()
         top.addWidget(self.search)
@@ -63,23 +64,37 @@ class Catalog(QtGui.QWidget):
         
         if search is None:
             if parent is not None or self.in_all:
-                self.addItem("[Up]", None, UP)
+                self.addItem("[Up]", None, None, UP)
             elif self.show_all:
-                self.addItem("[All]", None, ALL)
+                self.addItem("[All]", None, None, ALL)
         
-        for data, label in parents:
-            self.addItem(label, data, PARENT)
+        for item in parents:
+            try:
+                data, label, image = item
+            except ValueError:
+                data, label = item
+                image = None
+            self.addItem(label, image, data, PARENT)
         
-        for data, label in children:
-            self.addItem(label, data, CHILD)
+        for item in children:
+            try:
+                data, label, image = item
+            except ValueError:
+                data, label = item
+                image = None
+            self.addItem(label, image, data, CHILD)
         
         self.__display = [parents, children]
 
-    def addItem(self, label, data, t):
+    def addItem(self, label, image, data, t):
         item = QtGui.QListWidgetItem(label)
         item.setData(ITEM, data)
         item.setData(TYPE, t)
-        item.setIcon(self.icons[t])
+        if image:
+            icon = QtGui.QIcon(image)
+            item.setIcon(icon)
+        else:
+            item.setIcon(self.icons[t])
         return self.list.addItem(item)
 
     def onSearchTextChanged(self):
