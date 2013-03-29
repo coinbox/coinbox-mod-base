@@ -1,11 +1,8 @@
-import logging
-logger = logging.getLogger(__name__)
-
+from pydispatch import dispatcher
 from PySide import QtCore, QtGui
 
 import cbpos
-
-from pydispatch import dispatcher
+logger = cbpos.get_logger(__name__)
 
 class MainWindow(QtGui.QMainWindow):
     __inits = []

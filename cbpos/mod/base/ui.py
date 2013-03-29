@@ -1,11 +1,9 @@
-import logging
-logger = logging.getLogger(__name__)
-
 import PySide
 from PySide import QtCore, QtGui
 import sys
 
 import cbpos
+logger = cbpos.get_logger(__name__)
 
 class QtUIHandler(cbpos.BaseUIHandler):
     application = None

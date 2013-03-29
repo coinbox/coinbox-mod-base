@@ -1,9 +1,7 @@
-import logging
-logger = logging.getLogger(__name__)
-
 from PySide import QtGui, QtCore
 
 import cbpos
+logger = cbpos.get_logger(__name__)
 
 class AppConfigPage(QtGui.QWidget):
     label = 'Application'
