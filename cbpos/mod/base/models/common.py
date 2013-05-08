@@ -3,7 +3,7 @@ import cbpos.database
 #from sqlalchemy import func, Table, Column, Integer, String, Float, Boolean, Enum, DateTime, MetaData, ForeignKey
 #from sqlalchemy.orm import relationship, backref
 
-class Item:
+class Item(object):
     # TODO arrange soft deletions to have 3 tables (or more) one mother(id only), one active children, one deleted children
     #        see bookmark "The trouble with soft delete"
     #date_deleted = Column(DateTime, nullable=True, default=None)
