@@ -19,8 +19,13 @@ class Catalog(QtGui.QWidget):
         self.search.textChanged.connect(self.onSearchTextChanged)
         self.search.returnPressed.connect(self.onSearchReturnPressed)
         
-        self.clearBtn = QtGui.QPushButton()
-        self.clearBtn.setIcon(QtGui.QIcon.fromTheme('edit-clear'))
+        icon = QtGui.QIcon.fromTheme('edit-clear')
+        
+        if icon.isNull():
+            self.clearBtn = QtGui.QPushButton(cbpos.tr.base._('Clear'))
+        else:
+            self.clearBtn = QtGui.QPushButton()
+            self.clearBtn.setIcon(icon)
         self.clearBtn.pressed.connect(self.onSearchClear)
         
         self.list = QtGui.QListWidget()
