@@ -93,7 +93,7 @@ class MenuConfigPage(QtGui.QWidget):
         
         style_index = self.toolbar_style.currentIndex()
         toolbar_style = self.toolbar_style.itemData(style_index)
-        cbpos.config['menu', 'toolbar_style'] = str(toolbar_style)
+        cbpos.config['menu', 'toolbar_style'] = unicode(toolbar_style)
 
 class LocaleConfigPage(QtGui.QWidget):
     label = 'Locale'

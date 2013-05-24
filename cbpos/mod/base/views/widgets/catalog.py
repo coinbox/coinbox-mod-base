@@ -73,21 +73,21 @@ class Catalog(QtGui.QWidget):
             elif self.show_all:
                 self.addItem("[All]", None, None, ALL)
         
-        for item in parents:
+        for data in parents:
             try:
-                data, label, image = item
-            except ValueError:
-                data, label = item
+                item, image = data
+            except (TypeError, ValueError):
+                item = data
                 image = None
-            self.addItem(label, image, data, PARENT)
+            self.addItem(item.display, image, item, PARENT)
         
-        for item in children:
+        for data in children:
             try:
-                data, label, image = item
-            except ValueError:
-                data, label = item
+                item, image = data
+            except (TypeError, ValueError):
+                item = data
                 image = None
-            self.addItem(label, image, data, CHILD)
+            self.addItem(item.display, image, item, CHILD)
         
         self.__display = [parents, children]
 

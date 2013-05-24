@@ -7,10 +7,10 @@ class FormController(object):
     single = False
     
     def new(self, data=dict()):
-        item = self.cls(**data)
+        item = self.cls()
         session = cbpos.database.session()
         session.add(item)
-        session.commit()
+        item.update(**data)
     
     def delete(self, item):
         item.delete()

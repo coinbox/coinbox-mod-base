@@ -84,7 +84,7 @@ class FormPage(QtGui.QWidget):
         if self.controller.single:
             self.setItem(self.controller.item())
         else:
-            model = SimpleList(self.controller.items())
+            model = SimpleList([(i.display, i) for i in self.controller.items()])
             self.list.setModel(model)
             self.setItem(None)
     
@@ -124,7 +124,7 @@ class FormPage(QtGui.QWidget):
             else:
                 self.controller.update(self.item, data)
         except ValidationError as e:
-            QtGui.QMessageBox.information(self, 'Form', str(e), QtGui.QMessageBox.Ok)
+            QtGui.QMessageBox.information(self, 'Form', unicode(e), QtGui.QMessageBox.Ok)
             return
         self.populate()
     
@@ -167,4 +167,4 @@ class SimpleList(QtCore.QAbstractListModel):
 
     def data(self, index, role):
         if role == QtCore.Qt.DisplayRole:
-            return str(self.contents[index.row()][0])
+            return unicode(self.contents[index.row()][0])
