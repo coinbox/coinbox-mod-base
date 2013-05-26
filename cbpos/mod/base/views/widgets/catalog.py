@@ -65,6 +65,10 @@ class Catalog(QtGui.QWidget):
         else:
             parents, children = self.getChildren(parent=parent, search=search)
         
+        # If iterators are used (i.e. Query objects), they cannot be
+        # iterated over more than once. So we need to convert them to lists.
+        parents, children = list(parents), list(children)
+        
         self.list.clear()
         
         if search is None:
