@@ -147,8 +147,8 @@ class MainWindow(QtGui.QMainWindow):
         """
         mwState = self.saveState().toBase64() 
         mwGeom  = self.saveGeometry().toBase64() 
-        cbpos.config['mainwindow', 'state'] = '%s'%mwState #why i need to do this? it is supposed that toBase64() returns a string.
-        cbpos.config['mainwindow', 'geometry'] = '%s'%mwGeom
+        cbpos.config['mainwindow', 'state'] = unicode(mwState)
+        cbpos.config['mainwindow', 'geometry'] = unicode(mwGeom)
         cbpos.config.save()
 
 

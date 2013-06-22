@@ -54,7 +54,7 @@ class QtUIHandler(cbpos.BaseUIHandler):
         logger.debug('Loading main window...')
         self.window = MainWindow()
         
-        fullscreen = (cbpos.config['app', 'fullscreen'] != '')
+        fullscreen = bool(cbpos.config['app', 'fullscreen'])
         if fullscreen:
             self.window.showFullScreen()
         else:

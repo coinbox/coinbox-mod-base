@@ -19,12 +19,12 @@ class AppConfigPage(QtGui.QWidget):
         self.setLayout(form)
 
     def populate(self):
-        fullscreen = (cbpos.config['app', 'fullscreen'] != '')
+        fullscreen = cbpos.config['app', 'fullscreen']
         self.fullscreen.setChecked(fullscreen)
     
     def update(self):
-        fullscreen = self.fullscreen.isChecked()
-        cbpos.config['app', 'fullscreen'] = '1' if fullscreen else ''
+        checked = self.fullscreen.isChecked()
+        cbpos.config['app', 'fullscreen'] = checked
 
 class MenuConfigPage(QtGui.QWidget):
     label = 'Menu'
@@ -60,13 +60,13 @@ class MenuConfigPage(QtGui.QWidget):
         self.setLayout(form)
 
     def populate(self):
-        show_empty_root_items = (cbpos.config['menu', 'show_empty_root_items'] != '')
+        show_empty_root_items = bool(cbpos.config['menu', 'show_empty_root_items'])
         self.show_empty_root.setChecked(show_empty_root_items)
         
-        show_disabled_items = (cbpos.config['menu', 'show_disabled_items'] != '')
+        show_disabled_items = bool(cbpos.config['menu', 'show_disabled_items'])
         self.show_disabled.setChecked(show_disabled_items)
         
-        show_tab_bar = (cbpos.config['menu', 'show_tab_bar'] != '')
+        show_tab_bar = bool(cbpos.config['menu', 'show_tab_bar'])
         self.show_tab_bar.setChecked(show_tab_bar)
         
         toolbar_style = cbpos.config['menu', 'toolbar_style']
@@ -82,14 +82,11 @@ class MenuConfigPage(QtGui.QWidget):
         self.toolbar_style.setCurrentIndex(style_index)
     
     def update(self):
-        show_empty_root_items = self.show_empty_root.isChecked()
-        cbpos.config['menu', 'show_empty_root_items'] = '1' if show_empty_root_items else ''
+        cbpos.config['menu', 'show_empty_root_items'] = self.show_empty_root.isChecked()
         
-        show_disabled_items = self.show_disabled.isChecked()
-        cbpos.config['menu', 'show_disabled_items'] = '1' if show_disabled_items else ''
+        cbpos.config['menu', 'show_disabled_items'] = self.show_disabled.isChecked()
         
-        show_tab_bar = self.show_tab_bar.isChecked()
-        cbpos.config['menu', 'show_tab_bar'] = '1' if show_tab_bar else ''
+        cbpos.config['menu', 'show_tab_bar'] = self.show_tab_bar.isChecked()
         
         style_index = self.toolbar_style.currentIndex()
         toolbar_style = self.toolbar_style.itemData(style_index)
@@ -122,18 +119,16 @@ class LocaleConfigPage(QtGui.QWidget):
     def populate(self):
         localedir = cbpos.config['locale', 'localedir']
         languages = cbpos.config['locale', 'languages']
-        fallback = cbpos.config['locale', 'fallback'] == '1'
+        fallback = bool(cbpos.config['locale', 'fallback'])
         codeset = cbpos.config['locale', 'codeset']
         
         self.localedir.setText(localedir)
-        self.languages.setText(languages)
+        self.languages.setText(','.join(languages))
         self.fallback.setChecked(fallback)
         self.codeset.setText(codeset)
     
     def update(self):
         cbpos.config['locale', 'localedir'] = self.localedir.text()
-        cbpos.config['locale', 'languages'] = self.languages.text()
-        
-        cbpos.config['locale', 'fallback'] = '1' if self.fallback.isChecked() else ''
-        
+        cbpos.config['locale', 'languages'] = self.languages.text().split(',')
+        cbpos.config['locale', 'fallback'] = self.fallback.isChecked()
         cbpos.config['locale', 'codeset'] = self.codeset.text()
