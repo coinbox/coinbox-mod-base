@@ -132,3 +132,87 @@ class LocaleConfigPage(QtGui.QWidget):
         cbpos.config['locale', 'languages'] = self.languages.text().split(',')
         cbpos.config['locale', 'fallback'] = self.fallback.isChecked()
         cbpos.config['locale', 'codeset'] = self.codeset.text()
+
+from cbpos.mod.base.controllers import printing
+from cbpos.mod.base.views import FormPage
+
+class PrintingForm(FormPage):
+    controller = printing.PrinterFormController()
+    __printer = None
+    
+    def widgets(self):
+        name = QtGui.QLineEdit()
+        
+        setup = QtGui.QPushButton('Set up')
+        setup.clicked.connect(self.onSetUpClicked)
+        
+        info = QtGui.QTextEdit()
+        info.setReadOnly(True)
+
+        return (("name", name),
+                ("printer", setup),
+                ("info", info),
+                ("functions", QtGui.QListWidget()),
+                )
+    
+    def onSetUpClicked(self):
+        from cbpos.mod.base.controllers import printing
+        if self.__printer is None:
+            printer = printing.manager.prompt_printer('printer')
+        else:
+            printer = printing.manager.prompt_printer(self.__printer.name, self.__printer)
+        
+        self.setDataOnControl('printer', printer)
+        self.setDataOnControl('info', printer)
+    
+    def getDataFromControl(self, field):
+        if field == 'name':
+            data = self.f[field].text()
+        elif field == 'printer':
+            data = self.__printer
+        elif field == 'info':
+            data = None
+            field = None
+        elif field == 'functions':
+            data = [item.text() for item in self.f[field].selectedItems()]
+        return (field, data)
+    
+    def setDataOnControl(self, field, data):
+        if field == 'name':
+            self.f[field].setText(data)
+        elif field == 'printer':
+            self.__printer = data
+        elif field == 'info':
+            if data is None:
+                text = ""
+            else:
+                text = '\n'.join('{}: {}'.format(k, v) for k, v in data.serialized().iteritems())
+            self.f[field].setPlainText(text)
+        elif field == 'functions':
+            self.f[field].clear()
+            self.f[field].setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+            functions = printing.manager.get_function_names()
+            self.f[field].addItems(functions)
+            for i, f in enumerate(functions):
+                s = (f in data)
+                self.f[field].item(i).setSelected(s)
+
+class PrintingConfigPage(QtGui.QWidget):
+    label = 'Printing'
+    
+    def __init__(self):
+        super(PrintingConfigPage, self).__init__()
+        
+        self.form = PrintingForm()
+        
+        layout = QtGui.QHBoxLayout()
+        
+        layout.addWidget(self.form)
+        
+        self.setLayout(layout)
+
+    def populate(self):
+        self.form.populate()
+    
+    def update(self):
+        cbpos.config.save()

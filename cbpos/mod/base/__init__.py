@@ -8,7 +8,13 @@ class ModuleLoader(BaseModuleLoader):
     config = [['menu', {'show_tab_bar': False, 'toolbar_style': 0}]]
 
     def init(self):
+        from cbpos.mod.base.controllers import printing
+        
+        printing.manager = printing.PrinterManager()
+        
         dispatcher.connect(cbpos.terminate, signal='exit', sender=dispatcher.Any)
+        dispatcher.connect(printing.manager.register_function, signal='printing-register-function', sender=dispatcher.Any)
+        dispatcher.connect(printing.manager.handle, signal='printing-handle', sender=dispatcher.Any)
         
         return True
 
@@ -52,5 +58,5 @@ class ModuleLoader(BaseModuleLoader):
                 ]
 
     def config_pages(self):
-        from cbpos.mod.base.views import MenuConfigPage, AppConfigPage, LocaleConfigPage
-        return [AppConfigPage, MenuConfigPage, LocaleConfigPage]
+        from cbpos.mod.base.views import MenuConfigPage, AppConfigPage, LocaleConfigPage, PrintingConfigPage
+        return [AppConfigPage, MenuConfigPage, LocaleConfigPage, PrintingConfigPage]
