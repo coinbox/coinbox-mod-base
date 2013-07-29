@@ -5,7 +5,8 @@ from cbpos.modules import BaseModuleLoader
 
 class ModuleLoader(BaseModuleLoader):
     name = 'Base Module'
-    config = [['menu', {'show_tab_bar': False, 'toolbar_style': 0}]]
+    config = [['menu', {'show_tab_bar': False, 'toolbar_style': 0}],
+              ['printing', {'force_preview': False}]]
 
     def init(self):
         from cbpos.mod.base.controllers import printing
