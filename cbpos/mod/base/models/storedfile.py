@@ -29,9 +29,56 @@ class StoredFile(cbpos.database.Base, Item):
         super(StoredFile, self).__init__(filetype=filetype, content=content, filename=basename)
 
     @classmethod
-    def image(cls, path):
-        # TODO: process the image with PIL and accept additional arguments for image size, format, etc.
-        return cls(path)
+    def image(cls, path, size=None, format=None):
+        
+        # First, open the path
+        # TODO: what happens if the file is not an image? It should raise a meaningful exception
+        #         Maybe ValueError: Invalid image path / File does not exist / etc. Could be shown to the user
+        
+        from PIL import Image
+        im = Image.open(path)
+        original_size = im.size
+        
+        if size is None and format is None:
+            # No need to process anything
+            return cls(path)
+        
+        if format is None:
+            basename = os.path.basename(filename)
+            dummy, ext = os.path.splitext(basename)
+            # TODO: guess file type from mimetypes package, not extension
+            format = ext
+        
+        if size is None:
+            # Do not resize
+            # Note: do not return because format may be different (transparency, background, etc.)
+            size = original_size
+        
+        # If some processing is necessary, do it now.
+        
+        import tempfile, os
+        
+        # Create a temporary file
+        fd, temp = tempfile.mkstemp(suffix="."+format)
+        
+        logger.debug("Image will be saved temporarily to: " + temp)
+        
+        # Resize the image
+        final_im = Image.new("RGB", size, "white")
+        im.thumbnail(size, Image.ANTIALIAS)
+        
+        actual_size = im.size
+        paste_pos = tuple((size[i]-actual_size[i])/2 for i in (0, 1))
+        final_im.paste(im, paste_pos)
+        final_im.save(temp)
+        
+        # Create the StoredFile instance
+        image = cls(temp)
+        
+        # tempfile.mkstemp does nor delete the file once created
+        os.remove(temp)
+    
+        return image
 
     @hybrid_property
     def display(self):
