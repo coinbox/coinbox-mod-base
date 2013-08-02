@@ -8,6 +8,10 @@ class ModuleLoader(BaseModuleLoader):
     config = [['menu', {'show_tab_bar': False, 'toolbar_style': 0}],
               ['printing', {'force_preview': False}]]
 
+    def load(self):
+        from cbpos.mod.base.models import StoredFile
+        return [StoredFile]
+
     def init(self):
         from cbpos.mod.base.controllers import printing
         
