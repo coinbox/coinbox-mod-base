@@ -1,4 +1,6 @@
-import cbpos.database
+import cbpos
+
+logger = cbpos.get_logger(__name__)
 
 #from sqlalchemy import func, Table, Column, Integer, String, Float, Boolean, Enum, DateTime, MetaData, ForeignKey
 #from sqlalchemy.orm import relationship, backref
@@ -16,17 +18,29 @@ class Item(object):
 
     def update(self, **kwargs):
         session = cbpos.database.session()
-        for k, v in kwargs.iteritems():
-            setattr(self, k, v)
-        if not self in session:
-            session.add(self)
-        session.commit()
-        return True
+        try:
+            for k, v in kwargs.iteritems():
+                setattr(self, k, v)
+            if not self in session:
+                session.add(self)
+            session.commit()
+        except:
+            session.rollback()
+            logger.exception("Oops!")
+            return False
+        else:
+            return True
 
     def delete(self):
         session = cbpos.database.session()
-        session.delete(self)
-        # TODO check the soft delete thingy
-        #self.date_deleted = func.now()
-        session.commit()
-        return True
+        try:
+            session.delete(self)
+            # TODO check the soft delete thingy
+            #self.date_deleted = func.now()
+            session.commit()
+        except:
+            session.rollback()
+            logger.exception("Oops!")
+            return False
+        else:
+            return True

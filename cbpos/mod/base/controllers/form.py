@@ -1,6 +1,7 @@
 from PySide import QtCore, QtGui
 
 import cbpos
+logger = cbpos.get_logger(__name__)
 
 class FormController(object):
     cls = None
@@ -8,15 +9,16 @@ class FormController(object):
     
     def new(self, data=dict()):
         item = self.cls()
-        session = cbpos.database.session()
-        session.add(item)
-        item.update(**data)
+        if not item.update(**data):
+            raise ValidationError("Something went wrong")
     
     def delete(self, item):
-        item.delete()
+        if not item.delete():
+            raise ValidationError("Something went wrong")
     
     def update(self, item, data=dict()):
-        item.update(**data)
+        if not item.update(**data):
+            raise ValidationError("Something went wrong")
     
     def fields(self):
         return {}
