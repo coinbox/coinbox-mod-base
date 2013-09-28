@@ -124,7 +124,7 @@ class MainWindow(QtGui.QMainWindow):
             return widget
         elif count == 1:
             # If there is only one item, show it as is.
-            logger.debug('Loading menu page for %s' % (items[0].name,))
+            logger.debug('Loading menu page for %s', items[0].name)
             widget = items[0].page()
             widget.setEnabled(items[0].enabled)
             return widget
@@ -133,7 +133,7 @@ class MainWindow(QtGui.QMainWindow):
             tabs = QtGui.QTabWidget()
 
             for item in items:
-                logger.debug('Loading menu page for %s' % (item.name,))
+                logger.debug('Loading menu page for %s', item.name)
                 
                 widget = item.page()
                 icon = QtGui.QIcon(item.icon)
