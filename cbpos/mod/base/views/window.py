@@ -160,17 +160,16 @@ class MainWindow(QtGui.QMainWindow):
         #do any other thing before closing...
         event.accept()
     
-    @staticmethod
-    def addInit(init):
+    @classmethod
+    def addInit(cls, init):
         """
         Adds the `init` method to the list of extensions of the `MainWindow.__init__`.
         """
-        MainWindow.__inits.append(init)
+        cls.__inits.append(init)
     
     def callInit(self):
         """
         Handle calls to `__init__` methods of extensions of the MainWindow.
         """
-        logger.debug('There are (%d) extensions to the MainWindow' % (len(self.__inits),))
         for init in self.__inits:
             init(self)

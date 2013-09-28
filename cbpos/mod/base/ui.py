@@ -7,8 +7,12 @@ logger = cbpos.get_logger(__name__)
 
 class QtUIHandler(cbpos.BaseUIHandler):
     application = None
+    extensions = None
     __window = None
     __do_load = True
+    
+    def __init__(self):
+        self.extensions = []
     
     @property
     def window(self):
@@ -49,9 +53,30 @@ class QtUIHandler(cbpos.BaseUIHandler):
     
     def show_default(self):
         logger.debug('Importing main window...')
-        from .views import MainWindow
         
-        logger.debug('Loading main window...')
+        from cbpos.mod.base.views import MainWindow as BaseMainWindow
+        if len(self.extensions) > 0:
+            exts = tuple(self.extensions + [BaseMainWindow])
+            MainWindow = type('ExtendedMainWindow', exts, {})
+            
+            logger.debug('Extensions (%d): %s',
+                         len(exts)-1,
+                         ', '.join(e.__name__ for e in exts[:-1]))
+            
+            for ext in self.extensions:
+                try:
+                    init = ext.init
+                except AttributeError:
+                    pass
+                else:
+                    MainWindow.addInit(init)
+                    del ext.init
+        else:
+            MainWindow = BaseMainWindow
+            
+            logger.debug('No extensions.')
+        
+        logger.debug('Loading main window %s...', MainWindow.__name__)
         self.window = MainWindow()
         
         fullscreen = bool(cbpos.config['app', 'fullscreen'])
@@ -61,20 +86,7 @@ class QtUIHandler(cbpos.BaseUIHandler):
             self.window.showNormal()
     
     def extend_default(self, extension):
-        import cbpos.mod.base.views as baseviews
-        
-        try:
-            init = extension.init
-            delattr(extension, "init")
-        except AttributeError:
-            init = None
-        
-        class ExtendedMainWindow(extension, baseviews.MainWindow):
-            pass
-        
-        baseviews.MainWindow = ExtendedMainWindow
-        if init:
-            baseviews.MainWindow.addInit(init)
+        self.extensions.append(extension)
 
 class MainWindowExtension(object):
     pass
