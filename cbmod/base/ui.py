@@ -125,7 +125,7 @@ class QtUIHandler(cbpos.BaseUIHandler):
     
     def __load_default_main_window(self):
         logger.debug('Importing main window...')
-        from cbpos.mod.base.views import MainWindow as BaseMainWindow
+        from cbmod.base.views import MainWindow as BaseMainWindow
         
         if len(self.extensions) > 0:
             logger.debug('Loading main window extensions...')

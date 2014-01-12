@@ -6,7 +6,7 @@ import cbpos
 
 logger = cbpos.get_logger(__name__)
 
-from cbpos.mod.base.models import Item
+from cbmod.base.models import Item
 
 from sqlalchemy import func, Table, Column, Integer, String, Float, Boolean, LargeBinary, Enum, MetaData, ForeignKey
 from sqlalchemy.orm import relationship, backref, deferred

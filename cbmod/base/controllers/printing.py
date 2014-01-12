@@ -419,7 +419,7 @@ class HTMLPrintJob(DocPrintJob):
 
 manager = None
 
-from cbpos.mod.base.controllers import FormController
+from cbmod.base.controllers import FormController
 
 class PrinterFormController(FormController):
     cls = Printer

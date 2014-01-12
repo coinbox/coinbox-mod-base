@@ -5,11 +5,11 @@ from cbpos.modules import BaseModuleLoader
 
 class ModuleLoader(BaseModuleLoader):
     def load_models(self):
-        from cbpos.mod.base.models import StoredFile
+        from cbmod.base.models import StoredFile
         return [StoredFile]
 
     def init(self):
-        from cbpos.mod.base.controllers import printing
+        from cbmod.base.controllers import printing
         
         printing.manager = printing.PrinterManager()
         
@@ -20,7 +20,7 @@ class ModuleLoader(BaseModuleLoader):
         return True
 
     def ui_handler(self):
-        from cbpos.mod.base.ui import QtUIHandler
+        from cbmod.base.ui import QtUIHandler
         return QtUIHandler()
 
     def menu(self):
@@ -59,5 +59,5 @@ class ModuleLoader(BaseModuleLoader):
                 ]
 
     def config_pages(self):
-        from cbpos.mod.base.views import MenuConfigPage, AppConfigPage, LocaleConfigPage, PrintingConfigPage
+        from cbmod.base.views import MenuConfigPage, AppConfigPage, LocaleConfigPage, PrintingConfigPage
         return [AppConfigPage, MenuConfigPage, LocaleConfigPage, PrintingConfigPage]

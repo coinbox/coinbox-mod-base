@@ -2,7 +2,7 @@ from PySide import QtCore, QtGui
 
 import cbpos
 
-from cbpos.mod.base.controllers import ValidationError
+from cbmod.base.controllers import ValidationError
 
 class FormPage(QtGui.QWidget):
     controller = None

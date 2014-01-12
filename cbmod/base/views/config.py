@@ -133,8 +133,8 @@ class LocaleConfigPage(QtGui.QWidget):
         cbpos.config['locale', 'fallback'] = self.fallback.isChecked()
         cbpos.config['locale', 'codeset'] = self.codeset.text()
 
-from cbpos.mod.base.controllers import printing
-from cbpos.mod.base.views import FormPage
+from cbmod.base.controllers import printing
+from cbmod.base.views import FormPage
 
 class PrintingForm(FormPage):
     controller = printing.PrinterFormController()
@@ -156,7 +156,7 @@ class PrintingForm(FormPage):
                 )
     
     def onSetUpClicked(self):
-        from cbpos.mod.base.controllers import printing
+        from cbmod.base.controllers import printing
         if self.__printer is None:
             printer = printing.manager.prompt_printer('printer')
         else:
