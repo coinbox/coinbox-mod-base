@@ -45,8 +45,8 @@ class PrinterManager(object):
         """
         printer_names = self.get_printer_names()
         
-        item, ok = QtGui.QInputDialog.getItem(cbpos.ui.window, cbpos.tr.base._("Select Printer"),
-                                     cbpos.tr.base._("Choose a printer for this job:"),
+        item, ok = QtGui.QInputDialog.getItem(cbpos.ui.window, cbpos.tr.base_("Select Printer"),
+                                     cbpos.tr.base_("Choose a printer for this job:"),
                                      printer_names, -1, False)
         
         if ok:
@@ -432,10 +432,10 @@ class PrinterFormController(FormController):
         return ProxyItem(item)
     
     def fields(self):
-        return {"name": (cbpos.tr.base._("Name"), ""),
-                "setup": (cbpos.tr.base._("Setup"), None),
-                "info": (cbpos.tr.base._("Info"), None),
-                "functions": (cbpos.tr.base._("Use for"), []),
+        return {"name": (cbpos.tr.base_("Name"), ""),
+                "setup": (cbpos.tr.base_("Setup"), None),
+                "info": (cbpos.tr.base_("Info"), None),
+                "functions": (cbpos.tr.base_("Use for"), []),
                 }
     
     def new(self, data=dict()):

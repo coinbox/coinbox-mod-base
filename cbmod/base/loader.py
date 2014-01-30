@@ -27,19 +27,19 @@ class ModuleLoader(BaseModuleLoader):
         from cbpos.interface import MenuRoot
         return [
                 [MenuRoot('main',
-                            label=cbpos.tr.base._('Main'),
+                            label=cbpos.tr.base_('Main'),
                             icon=cbpos.res.base('images/menu-main.png'),
                             rel=0,
                             priority=5
                           ),
                  MenuRoot('system',
-                            label=cbpos.tr.base._('System'),
+                            label=cbpos.tr.base_('System'),
                             icon=cbpos.res.base('images/menu-system.png'),
                             rel=-1,
                             priority=4
                           ),
                  MenuRoot('administration',
-                            label=cbpos.tr.base._('Administration'),
+                            label=cbpos.tr.base_('Administration'),
                             icon=cbpos.res.base('images/menu-administration.png'),
                             rel=-1,
                             priority=5
@@ -51,7 +51,7 @@ class ModuleLoader(BaseModuleLoader):
     def actions(self):
         from cbpos.interface import Action
         return [Action('quit',
-                       label=cbpos.tr.base._('Exit'),
+                       label=cbpos.tr.base_('Exit'),
                        icon=cbpos.res.base("images/cancel.png"),
                        shortcut='Ctrl+Q',
                        signal='exit'

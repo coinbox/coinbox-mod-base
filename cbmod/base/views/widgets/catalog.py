@@ -14,7 +14,7 @@ class Catalog(QtGui.QWidget):
     def __init__(self):
         super(Catalog, self).__init__()
         self.search = QtGui.QLineEdit()
-        self.search.setPlaceholderText(cbpos.tr.base._('Search'))
+        self.search.setPlaceholderText(cbpos.tr.base_('Search'))
         
         self.search.textChanged.connect(self.onSearchTextChanged)
         self.search.returnPressed.connect(self.onSearchReturnPressed)
@@ -22,7 +22,7 @@ class Catalog(QtGui.QWidget):
         icon = QtGui.QIcon.fromTheme('edit-clear')
         
         if icon.isNull():
-            self.clearBtn = QtGui.QPushButton(cbpos.tr.base._('Clear'))
+            self.clearBtn = QtGui.QPushButton(cbpos.tr.base_('Clear'))
         else:
             self.clearBtn = QtGui.QPushButton()
             self.clearBtn.setIcon(icon)
