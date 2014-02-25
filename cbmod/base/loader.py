@@ -13,7 +13,7 @@ class ModuleLoader(BaseModuleLoader):
         
         printing.manager = printing.PrinterManager()
         
-        dispatcher.connect(cbpos.terminate, signal='exit', sender=dispatcher.Any)
+        dispatcher.connect(cbpos.loader.terminate, signal='exit', sender=dispatcher.Any)
         dispatcher.connect(printing.manager.register_function, signal='printing-register-function', sender=dispatcher.Any)
         dispatcher.connect(printing.manager.handle, signal='printing-handle', sender=dispatcher.Any)
         
