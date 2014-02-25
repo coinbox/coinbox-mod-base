@@ -4,6 +4,8 @@ from PySide import QtCore, QtGui
 import cbpos
 logger = cbpos.get_logger(__name__)
 
+from .page import BasePage
+
 class MainWindow(QtGui.QMainWindow):
     __inits = []
     
@@ -13,6 +15,7 @@ class MainWindow(QtGui.QMainWindow):
         self.tabs = QtGui.QTabWidget(self)
         self.tabs.setTabsClosable(False)
         self.tabs.setIconSize(QtCore.QSize(32, 32))
+        self.tabs.currentChanged.connect(self.onCurrentTabChanged)
         
         self.toolbar = self.addToolBar('Base')
         self.toolbar.setIconSize(QtCore.QSize(48,48)) #Suitable for touchscreens
@@ -111,6 +114,17 @@ class MainWindow(QtGui.QMainWindow):
                 action.triggered.connect(action.onTrigger)
                 self.toolbar.addAction(action)
 
+    def onCurrentTabChanged(self, index, tabs=None):
+        if tabs is None:
+            tabs = self.tabs
+        widget = tabs.widget(index)
+        try:
+            signal = widget.shown
+        except AttributeError:
+            pass
+        else:
+            signal.emit()
+
     def getTabWidget(self, items):
         """
         Returns the appropriate window to be placed in the main QTabWidget,
@@ -131,6 +145,7 @@ class MainWindow(QtGui.QMainWindow):
         else:
             # If there are many children, add them in a QTabWidget
             tabs = QtGui.QTabWidget()
+            tabs.currentChanged.connect(lambda i, t=tabs: self.onCurrentTabChanged(i, t))
 
             for item in items:
                 logger.debug('Loading menu page for %s', item.name)

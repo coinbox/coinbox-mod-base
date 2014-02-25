@@ -53,7 +53,6 @@ class Catalog(QtGui.QWidget):
         self.__current = None
         self.__tree = []
         self.__display = [[], []]
-        self.populate()
 
     def populate(self, parent=None, search=None, show_all=False):
         self.__current = parent

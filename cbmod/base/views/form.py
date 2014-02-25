@@ -2,21 +2,19 @@ from PySide import QtCore, QtGui
 
 import cbpos
 
+from cbmod.base.views import BasePage
 from cbmod.base.controllers import ValidationError
 
-class FormPage(QtGui.QWidget):
+class FormPage(BasePage):
     controller = None
     
     def __init__(self):
         super(FormPage, self).__init__()
 
-        self.editing = False
-
         self.list = QtGui.QListView()
         self.list.activated.connect(self.onItemActivated)
         
         buttonBox = QtGui.QDialogButtonBox()
-        
         
         self.deleteBtn = buttonBox.addButton("Delete", QtGui.QDialogButtonBox.DestructiveRole)
         self.deleteBtn.pressed.connect(self.onDeleteButton)
@@ -76,7 +74,9 @@ class FormPage(QtGui.QWidget):
         
         self.setLayout(layout)
         
-        self.populate()
+        self.editing = False
+        self.formContainer.setEnabled(False)
+        self.setItem(None)
     
     def populate(self):
         self.editing = False
