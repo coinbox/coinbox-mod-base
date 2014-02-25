@@ -11,22 +11,27 @@ class QtUIHandler(cbpos.BaseUIHandler):
     extensions = None
     __started = False
     __window = None
+    __wizard = None
     __do_load = True
     __current_window = None
     
     PRIORITY_MIN = 0x00
     
-    PRIORITY_FIRST = 0x10
-    PRIORITY_FIRST_LOW = 0x11
-    PRIORITY_FIRST_MEDIUM = 0x12
-    PRIORITY_FIRST_HIGH = 0x13
+    PRIORITY_FIRST_HIGHEST = 0x0F
     
-    PRIORITY_NONE = 0x20
+    PRIORITY_FIRST_HIGH = 0x60
+    PRIORITY_FIRST_MEDIUM = 0x67
+    PRIORITY_FIRST_LOW = 0x6F
     
-    PRIORITY_LAST = 0x30
-    PRIORITY_LAST_LOW = 0x31
-    PRIORITY_LAST_MEDIUM = 0x32
-    PRIORITY_LAST_HIGH = 0x33
+    PRIORITY_FIRST = 0x6F
+    PRIORITY_NONE = 0x70
+    PRIORITY_LAST = 0x80
+    
+    PRIORITY_LAST_LOW = 0x80
+    PRIORITY_LAST_MEDIUM = 0x87
+    PRIORITY_LAST_HIGH = 0x8F
+    
+    PRIORITY_LAST_HIGHEST = 0xF0
     
     PRIORITY_MAX = 0xFF
     
@@ -53,7 +58,6 @@ class QtUIHandler(cbpos.BaseUIHandler):
             raise ValueError("Application not started. Cannot replace window.")
         
         self.__window.close()
-        self.__window = win
         
         return self.__show_window(win)
     
@@ -104,6 +108,12 @@ class QtUIHandler(cbpos.BaseUIHandler):
         self.application = QtGui.QApplication(sys.argv)
         return True
     
+    def handle_first_run(self):
+        assert cbpos.first_run, 'Cannot handle first run if not actually first-run'
+        
+        cbpos.loader.autoload_database(False)
+        cbpos.loader.autoload_interface(False)
+    
     def start(self):
         if self.application is None:
             logger.critical('No QApplication set up.')
@@ -115,8 +125,9 @@ class QtUIHandler(cbpos.BaseUIHandler):
         
         if cbpos.first_run:
             logger.info("Follow me, I'll get you to the wizard.")
-            wizard = QtGui.QWidget()
-            self.chain_window(wizard, self.PRIORITY_FIRST_HIGH)
+            from cbmod.base.views import FirstTimeWizard
+            self.__wizard = FirstTimeWizard()
+            self.chain_window(self.__wizard, self.PRIORITY_FIRST_HIGHEST)
         
         self.__started = True
         self.show_next()
