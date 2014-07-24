@@ -1,6 +1,6 @@
-import tempfile, os
+import os
+import tempfile
 from cStringIO import StringIO
-from PIL import Image
 
 import cbpos
 
@@ -42,6 +42,12 @@ class StoredFile(cbpos.database.Base, Item):
 
     @classmethod
     def image(cls, path, size=None, format=None):
+        
+        try:
+            from PIL import Image
+        except ImportError as e:
+            logger.warn("Cannot process image: %s" % (e,))
+            return cls(path)
         
         # First, open the path
         try:
